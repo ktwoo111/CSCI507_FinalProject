@@ -8,6 +8,10 @@ import cv2
 import tensorflow as tf
 from matplotlib import pyplot as plt
 from skimage import io
+from sklearn.model_selection import train_test_split
+from tensorflow import keras
+from keras import Sequential
+from keras.layers import Dense, Dropout, Flatten, Conv2D, MaxPool2D
 
 
 
@@ -37,33 +41,33 @@ def reshape_image(filePath):
 all_images = []
 for image_path in listdir('./2013-02-22/Empty/'):
   result = reshape_image('./2013-02-22/Empty/'+image_path)
+  #print(result)
   #print(type(result))
   #print(result.shape)
   #plt.imshow(result,cmap='gray')
   #plt.show()
   all_images.append(result)
 y_train_empty = np.array([0]*len(all_images))
-for image_path in listdir('./2013-02-22/Empty/'):
-  result = reshape_image('./2013-02-22/Empty/'+image_path)
+temp_size = len(all_images)
+for image_path in listdir('./2013-02-22/Occupied/'):
+  result = reshape_image('./2013-02-22/Occupied/'+image_path)
   #print(type(result))
   #print(result.shape)
   #plt.imshow(result,cmap='gray')
   #plt.show()
   all_images.append(result)
-
-
+y_train_occupied = np.array([1]* (len(all_images)-temp_size))
 print('length of all_images', len(all_images))
-x_train = np.array(all_images)
-print(type(x_train))
-print(x_train.shape)
-np.concatenate((a, b), axis=None)
-print(y_train.shape)
+X = np.array(all_images)
+print(type(X))
+print(X.shape)
+y = np.concatenate((y_train_empty, y_train_occupied), axis=None)
+print(y.shape)
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.33, random_state=42)
 
 
-from tensorflow import keras
-from keras import Sequential
-from keras.layers import Dense, Dropout, Flatten, Conv2D, MaxPool2D
-
+# setting up CNN
 cnn_layers = [Conv2D(32, (5,5),activation='relu',padding='same',input_shape=(target_width,target_height,1))]
 cnn_layers.append(MaxPool2D())
 cnn_layers.append(Conv2D(64, (5,5),activation='relu',padding='same'))
@@ -78,8 +82,14 @@ cnn_layers.append(Dense(100,activation='relu'))
 cnn_layers.append(Dense(1,activation='softmax'))
 cnn_model = Sequential(cnn_layers)
 
-cnn_model.compile(optimizer="rmsprop", loss='sparse_categorical_crossentropy', metrics=['accuracy'])
-cnn_model.fit(x_train.reshape(-1,200,200,1), y_train, epochs=3)
+#training CNN
+cnn_model.compile(optimizer="rmsprop", loss='binary_crossentropy', metrics=['accuracy'])
+cnn_model.fit(X_train.reshape(-1,200,200,1), y_train, epochs=1)
+
+
+#evaluate CNN
+cnn_scores = cnn_model.evaluate(X_test.reshape(-1, 200, 200 ,1), y_test)
+print('accuracy:',cnn_scores[1])
 
 
 
