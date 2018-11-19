@@ -1,21 +1,14 @@
 import numpy as np
 import pandas as pd
-from scipy import ndimage
-from keras.preprocessing.image import ImageDataGenerator, array_to_img, img_to_array, load_img
-from keras.preprocessing import image
 from os import listdir
 import cv2
 import tensorflow as tf
 from matplotlib import pyplot as plt
-from skimage import io
 from sklearn.model_selection import train_test_split
 from tensorflow import keras
 from keras import Sequential
 from keras.layers import Dense, Dropout, Flatten, Conv2D, MaxPool2D
 from keras.models import load_model
-
-
-
 
 #loading up model
 target_width = 200
@@ -50,6 +43,7 @@ for image_path in listdir('./2013-02-22/Empty/'):
   all_images.append(result)
 y_train_empty = np.array([0]*len(all_images))
 temp_size = len(all_images)
+print('got empty')
 for image_path in listdir('./2013-02-22/Occupied/'):
   result = reshape_image('./2013-02-22/Occupied/'+image_path)
   #print(type(result))
@@ -57,6 +51,7 @@ for image_path in listdir('./2013-02-22/Occupied/'):
   #plt.imshow(result,cmap='gray')
   #plt.show()
   all_images.append(result)
+print('got occupied')
 y_train_occupied = np.array([1]* (len(all_images)-temp_size))
 print('length of all_images', len(all_images))
 X = np.array(all_images)
@@ -66,10 +61,12 @@ y = np.concatenate((y_train_empty, y_train_occupied), axis=None)
 print(y.shape)
 
 
+print('splitting')
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size= .25, random_state=0)
 
 
 # setting up CNN
+print('setup CNN')
 cnn_layers = [Conv2D(32, (5,5),activation='relu',padding='same',input_shape=(target_width,target_height,1))]
 cnn_layers.append(MaxPool2D())
 cnn_layers.append(Conv2D(64, (5,5),activation='relu',padding='same'))
@@ -102,10 +99,3 @@ new_cnn = load_model('my_model.h5')
 #evaluate CNN
 cnn_scores = new_cnn.evaluate(X_test.reshape(-1, 200, 200 ,1), y_test)
 print('accuracy:',cnn_scores[1])
-
-
-
-
-
-#empty = np.ndarray([tf.image.resize_image_with_crop_or_pad(cv.imread(fileName),target_height,target_width) for fileName in listdir('./2013-02-22/Empty/')])
-#print(empty)
