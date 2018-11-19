@@ -12,6 +12,7 @@ from sklearn.model_selection import train_test_split
 from tensorflow import keras
 from keras import Sequential
 from keras.layers import Dense, Dropout, Flatten, Conv2D, MaxPool2D
+from keras.models import load_model
 
 
 
@@ -64,7 +65,8 @@ print(X.shape)
 y = np.concatenate((y_train_empty, y_train_occupied), axis=None)
 print(y.shape)
 
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.33, random_state=42)
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size= .25, random_state=0)
 
 
 # setting up CNN
@@ -90,6 +92,18 @@ cnn_model.fit(X_train.reshape(-1,200,200,1), y_train, epochs=1)
 #evaluate CNN
 cnn_scores = cnn_model.evaluate(X_test.reshape(-1, 200, 200 ,1), y_test)
 print('accuracy:',cnn_scores[1])
+
+#testing saving and loading model
+cnn_model.save('my_model.h5')
+
+del cnn_model
+
+new_cnn = load_model('my_model.h5')
+#evaluate CNN
+cnn_scores = new_cnn.evaluate(X_test.reshape(-1, 200, 200 ,1), y_test)
+print('accuracy:',cnn_scores[1])
+
+
 
 
 
