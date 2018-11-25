@@ -4,11 +4,13 @@ from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.svm import SVC # This is the SVM classifier
 from matplotlib import pyplot as plt
 import glob
+import pickle
 from sklearn.metrics import classification_report, confusion_matrix, f1_score
 
 def reshape_image(filePath):
-  desired_size = 200
+  desired_size = 250
   im = cv.imread(filePath)
+  print(im.shape)
   old_size = im.shape[:2] # old_size is in (height, width) format
   ratio = float(desired_size)/max(old_size)
   new_size = tuple([int(x*ratio) for x in old_size])
@@ -45,11 +47,13 @@ y = []
 #dense=cv.FeatureDetector_create("Dense")
 i = 0;
 for filename in glob.glob('../images/empty/*'):
-	if(i < 200):
+	if(i < 5):
 		
 		#img = cv.imread(filename)
 		#gray= cv.cvtColor(img,cv.COLOR_BGR2GRAY)
 		img = reshape_image(filename)
+		#cv.imshow('img',img)
+		#cv.waitKey(0)
 		des = dsift(img)
 		#if(i == 0):
 			#plt.imshow(img, cmap='gray')
@@ -61,9 +65,9 @@ for filename in glob.glob('../images/empty/*'):
 		X.append(des)
 		y.append(0)
 		i = i + 1
-		print(i)
+		#print(des)
 for filename in glob.glob('../images/occupied/*'):
-	if(i < 400):
+	if(i < 10):
 		#img = cv.imread(filename)
 		#gray= cv.cvtColor(img,cv.COLOR_BGR2GRAY)
 		img = reshape_image(filename)
@@ -73,7 +77,8 @@ for filename in glob.glob('../images/occupied/*'):
 		X.append(des)
 		y.append(1)
 		i = i + 1
-		print(i)
+		#print(des)
+		#print(i)
 X = np.asarray(X)
 y = np.asarray(y)
 X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=0, test_size=0.2)
@@ -82,9 +87,14 @@ nx, nxx, nyx = X_train.shape
 X_train = np.nan_to_num(X_train)
 X_train = X_train.reshape((nx,nxx*nyx))
 #y_train = y_train.reshape((ny,nxy*nyy))
-print(X_train[1])
+print(np.sum(X_train[1]),np.sum(X_train[2]),np.sum(X_train[3])) 
+#print(X_train[1], X_train[100], X_train[500])
 svm = SVC(kernel='linear')
+print('TEST ', X_train[1].shape, nx, nxx, nyx)
 svm.fit(X_train,y_train)
+
+file = 'saved_model.sav'
+#pickle.dump(svm, open(file,'wb'))
 
 nTest, nxTest, nyTest = X_test.shape
 X_test = X_test.reshape((nTest,nxTest*nyTest))
